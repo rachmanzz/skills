@@ -18,7 +18,11 @@ skills-compatible agents.
 
 ```text
 .
+├── LICENSE
 ├── package.json
+├── tests/
+│   ├── test_validate_evidence.py
+│   └── test_validate_skill_package.py
 ├── .github/
 │   └── workflows/
 │       └── validate-skill.yml
@@ -96,6 +100,7 @@ python3 skills/performance-and-resource-efficiency/scripts/validate-skill-packag
   skills/evidence-led-concurrency-and-delivery
 python3 skills/performance-and-resource-efficiency/scripts/validate-evidence.py \
   skills/performance-and-resource-efficiency/references/evidence-ledger-template.md
+python3 -m unittest discover -s tests -v
 ```
 
 For a local test:
@@ -132,3 +137,7 @@ experimental npm synchronization flow:
 npm install -D skills performance-and-resource-efficiency-skills
 npx skills experimental_sync -y
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
