@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the installable performance skill package without dependencies."""
+"""Validate an installable skill package without dependencies."""
 
 from __future__ import annotations
 
@@ -79,7 +79,11 @@ def validate(skill_dir: Path) -> list[str]:
 
 
 def main() -> int:
-    skill_dir = Path(__file__).resolve().parents[1]
+    skill_dir = (
+        Path(sys.argv[1]).resolve()
+        if len(sys.argv) > 1
+        else Path(__file__).resolve().parents[1]
+    )
     errors = validate(skill_dir)
     package_file = skill_dir.parents[1] / "package.json"
     if package_file.is_file():

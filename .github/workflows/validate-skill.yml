@@ -20,6 +20,12 @@ jobs:
       - name: Validate skill package
         run: python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py
 
+      - name: Validate evidence-led concurrency and delivery skill
+        run: >-
+          python3
+          skills/performance-and-resource-efficiency/scripts/validate-skill-package.py
+          skills/evidence-led-concurrency-and-delivery
+
       - name: Validate evidence ledger
         run: python3 skills/performance-and-resource-efficiency/scripts/validate-evidence.py skills/performance-and-resource-efficiency/references/evidence-ledger-template.md
 

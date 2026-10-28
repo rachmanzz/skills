@@ -1,9 +1,18 @@
-# Performance and Resource Efficiency Skills
+# Performance and Reliability Skills
 
-A practical Agent Skill for finding, explaining, and fixing performance
-bottlenecks in memory usage, loops, methods, data structures, I/O, concurrency,
-profiling, and caching. It uses the standard `SKILL.md` format and is
-compatible with Codex, Antigravity (`agy`), and other skills-compatible agents.
+A collection of installable Agent Skills for measured performance work and
+evidence-led concurrent or asynchronous execution. The skills use the standard
+`SKILL.md` format and are compatible with Codex, Antigravity (`agy`), and other
+skills-compatible agents.
+
+## Included skills
+
+- `performance-and-resource-efficiency` — memory, allocation, algorithms,
+  loops, I/O, concurrency, profiling, benchmarking, and cache reliability.
+- `evidence-led-concurrency-and-delivery` — cancellation, failure isolation,
+  leak prevention, join/wait behavior, shutdown, idempotency, transactions,
+  ownership, visibility, durability, batching, backpressure, admission, and
+  fairness with explicit evidence control.
 
 ## Repository layout
 
@@ -14,7 +23,7 @@ compatible with Codex, Antigravity (`agy`), and other skills-compatible agents.
 │   └── workflows/
 │       └── validate-skill.yml
 └── skills/
-    └── performance-and-resource-efficiency/
+    ├── performance-and-resource-efficiency/
         ├── SKILL.md
         ├── agents/
         │   └── openai.yaml
@@ -31,7 +40,6 @@ compatible with Codex, Antigravity (`agy`), and other skills-compatible agents.
             ├── profiling-and-benchmarking.md
             ├── evidence-and-assumption-control.md
             ├── evidence-ledger-template.md
-            ├── evidence-and-assumption-control.md
             ├── cache-reliability-and-fallback/
             │   ├── cache-contract.md
             │   ├── consistency-and-write-policies.md
@@ -42,7 +50,14 @@ compatible with Codex, Antigravity (`agy`), and other skills-compatible agents.
             │   ├── observability.md
             │   ├── operational-controls.md
             │   ├── security-and-isolation.md
-            │   └── shared-cache-backends.md
+            │   ├── shared-cache-backends.md
+            │   └── language-adapters/
+            │       ├── csharp.md
+            │       ├── go.md
+            │       ├── java.md
+            │       ├── javascript-typescript.md
+            │       ├── python.md
+            │       └── rust.md
             └── language-adapters/
                 ├── javascript-typescript.md
                 ├── python.md
@@ -50,18 +65,35 @@ compatible with Codex, Antigravity (`agy`), and other skills-compatible agents.
                 ├── java.md
                 ├── rust.md
                 └── csharp.md
+    └── evidence-led-concurrency-and-delivery/
+        ├── SKILL.md
+        ├── agents/
+        │   └── openai.yaml
+        └── references/
+            ├── evidence-and-assumption-control.md
+            ├── cancellation-and-failure-propagation.md
+            ├── panic-recovery-and-leak-prevention.md
+            ├── join-wait-and-shutdown.md
+            ├── idempotency-and-transaction-boundaries.md
+            ├── ownership-visibility-and-durable-storage.md
+            ├── batching-backpressure-and-admission.md
+            ├── fairness-and-scheduling.md
+            └── validation-matrix.md
 ```
 
 ## Install from a Git repository
 
 ```bash
 npx skills add owner/repository --skill performance-and-resource-efficiency
+npx skills add owner/repository --skill evidence-led-concurrency-and-delivery
 ```
 
 ## Validate locally
 
 ```bash
 python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py
+python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py \
+  skills/evidence-led-concurrency-and-delivery
 python3 skills/performance-and-resource-efficiency/scripts/validate-evidence.py \
   skills/performance-and-resource-efficiency/references/evidence-ledger-template.md
 ```
@@ -70,6 +102,7 @@ For a local test:
 
 ```bash
 npx skills add . --skill performance-and-resource-efficiency --copy -y
+npx skills add . --skill evidence-led-concurrency-and-delivery --copy -y
 ```
 
 ## Install in Google Antigravity
@@ -80,11 +113,12 @@ Install the skill bundle with the Antigravity CLI:
 agy plugin install https://github.com/rachmanzz/skills.git
 ```
 
-Antigravity discovers the skill under the workspace `.agents/skills/` directory
-and exposes it as:
+Antigravity discovers the skills under the workspace `.agents/skills/` directory
+and exposes them as:
 
 ```text
 /performance-and-resource-efficiency
+/evidence-led-concurrency-and-delivery
 ```
 
 No Antigravity-specific duplicate of `SKILL.md` is required.

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Evidence-Led Concurrency and Delivery"
+  short_description: "Verify concurrent work and delivery behavior"
+  default_prompt: "Use $evidence-led-concurrency-and-delivery to review this reliability-critical execution path, state the inspected scope, and verify its lifecycle, delivery, and resource-bound claims."
+policy:
+  allow_implicit_invocation: true

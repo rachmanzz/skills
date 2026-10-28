@@ -1,7 +1,7 @@
 {
   "name": "performance-and-resource-efficiency-skills",
   "version": "0.1.0",
-  "description": "Agent Skill for finding and fixing performance bottlenecks in memory usage, loops, method design, I/O, concurrency, caching, and resource efficiency.",
+  "description": "Agent Skills for measured performance work and evidence-led concurrent or asynchronous execution.",
   "license": "MIT",
   "files": [
     "skills"
@@ -12,6 +12,11 @@
     "memory-efficiency",
     "algorithms",
     "caching",
+    "concurrency",
+    "reliability",
+    "delivery-semantics",
+    "idempotency",
+    "graceful-shutdown",
     "optimization",
     "antigravity",
     "agy"
