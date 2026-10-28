@@ -20,7 +20,9 @@ skills-compatible agents.
 .
 ├── LICENSE
 ├── package.json
+├── plugin.json
 ├── tests/
+│   ├── test_plugin_manifest.py
 │   ├── test_validate_evidence.py
 │   └── test_validate_skill_package.py
 ├── .github/
@@ -112,21 +114,25 @@ npx skills add . --skill evidence-led-concurrency-and-delivery --copy -y
 
 ## Install in Google Antigravity
 
-Install the skill bundle with the Antigravity CLI:
+The repository is also an Antigravity plugin: `plugin.json` at the root declares
+the manifest, and the `skills/` layout supplies the skills. Install it with the
+Antigravity CLI:
 
 ```bash
 agy plugin install https://github.com/rachmanzz/skills.git
 ```
 
-Antigravity discovers the skills under the workspace `.agents/skills/` directory
-and exposes them as:
+The plugin installs as `performance-and-reliability-skills` with both skills:
 
 ```text
 /performance-and-resource-efficiency
 /evidence-led-concurrency-and-delivery
 ```
 
-No Antigravity-specific duplicate of `SKILL.md` is required.
+Alternatively, install manually by placing the plugin directory either in
+`.agents/plugins/` at a workspace root (project scope) or in
+`~/.gemini/config/plugins/` (global scope). No Antigravity-specific duplicate of
+`SKILL.md` is required.
 
 ## Install as an npm dependency
 
