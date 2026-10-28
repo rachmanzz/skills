@@ -9,11 +9,17 @@ profiling, and caching.
 ```text
 .
 ├── package.json
+├── .github/
+│   └── workflows/
+│       └── validate-skill.yml
 └── skills/
     └── performance-and-resource-efficiency/
         ├── SKILL.md
         ├── agents/
         │   └── openai.yaml
+        ├── scripts/
+        │   ├── validate-evidence.py
+        │   └── validate-skill-package.py
         └── references/
             ├── memory-efficiency.md
             ├── loop-and-algorithm-design.md
@@ -22,6 +28,8 @@ profiling, and caching.
             ├── io-and-database-efficiency.md
             ├── concurrency.md
             ├── profiling-and-benchmarking.md
+            ├── evidence-and-assumption-control.md
+            ├── evidence-ledger-template.md
             ├── evidence-and-assumption-control.md
             ├── cache-reliability-and-fallback/
             │   ├── cache-contract.md
@@ -47,6 +55,14 @@ profiling, and caching.
 
 ```bash
 npx skills add owner/repository --skill performance-and-resource-efficiency
+```
+
+## Validate locally
+
+```bash
+python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py
+python3 skills/performance-and-resource-efficiency/scripts/validate-evidence.py \
+  skills/performance-and-resource-efficiency/references/evidence-ledger-template.md
 ```
 
 For a local test:

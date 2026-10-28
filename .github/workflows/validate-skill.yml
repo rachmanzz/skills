@@ -1,0 +1,27 @@
+name: Validate skill
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Validate skill package
+        run: python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py
+
+      - name: Validate evidence ledger
+        run: python3 skills/performance-and-resource-efficiency/scripts/validate-evidence.py skills/performance-and-resource-efficiency/references/evidence-ledger-template.md
+
+      - name: Validate package metadata
+        run: python3 -c "import json; json.load(open('package.json', encoding='utf-8'))"

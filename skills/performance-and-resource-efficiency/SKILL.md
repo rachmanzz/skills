@@ -36,6 +36,10 @@ only the relevant references:
   [evidence-and-assumption-control.md](references/evidence-and-assumption-control.md)
   before making claims about existing behavior, completed work, performance,
   compatibility, tests, or runtime state.
+- Use the bundled
+  [validate-evidence.py](scripts/validate-evidence.py) when producing a
+  Markdown evidence ledger. Use [validate-skill-package.py](scripts/validate-skill-package.py)
+  to validate the skill structure before publishing.
 - Read the cache references under
   [cache-reliability-and-fallback/](references/cache-reliability-and-fallback/)
   for TTL, LRU capacity, cache rotation, shared backends, and database
@@ -124,6 +128,17 @@ Use `ABSENT` only after searching the relevant repository scope and finding no
 implementation. Use `UNKNOWN` when the search or runtime evidence is
 insufficient. User intent, a package being installed, a variable being named,
 or a configuration key existing is not proof of behavior.
+
+When the bundled validator is available, run:
+
+```bash
+python3 scripts/validate-evidence.py path/to/evidence-ledger.md
+```
+
+The ledger must contain non-empty `Claim`, `Evidence`, `Status`, and
+`Validation` columns. Definitive claims such as “implemented,” “fixed,”
+“working,” “faster,” or “tested successfully” require `VERIFIED` status and
+supporting evidence.
 
 ### 3. Analyze memory and complexity
 
