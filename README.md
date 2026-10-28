@@ -1,8 +1,8 @@
 # Performance and Resource Efficiency Skills
 
-An English, language-agnostic Agent Skill for improving software performance
-through measured memory efficiency, loop and algorithm design, method design,
-data structures, I/O, concurrency, profiling, and reliable caching.
+A practical Agent Skill for finding, explaining, and fixing performance
+bottlenecks in memory usage, loops, methods, data structures, I/O, concurrency,
+profiling, and caching.
 
 ## Repository layout
 

@@ -13,9 +13,10 @@ as an evidence-driven engineering task. Do not optimize based on intuition when
 profiling, benchmarks, complexity analysis, or resource measurements can answer
 the question.
 
-This skill is language-agnostic. Choose implementation details from the actual
-language, runtime, libraries, and deployment model. Read only the relevant
-references:
+Choose implementation details from the actual language, runtime, libraries, and
+deployment model. The function of this skill is to connect a measurable
+performance problem to an appropriate code change and validation method. Read
+only the relevant references:
 
 - Read [memory-efficiency.md](references/memory-efficiency.md) for allocation,
   object lifetime, copying, leaks, and memory budgets.
