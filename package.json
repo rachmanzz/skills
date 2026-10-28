@@ -1,0 +1,17 @@
+{
+  "name": "performance-and-resource-efficiency-skills",
+  "version": "0.1.0",
+  "description": "Language-agnostic Agent Skill for memory efficiency, loop and method design, I/O, concurrency, caching, and measured performance optimization.",
+  "license": "MIT",
+  "files": [
+    "skills"
+  ],
+  "keywords": [
+    "agent-skills",
+    "performance",
+    "memory-efficiency",
+    "algorithms",
+    "caching",
+    "optimization"
+  ]
+}
