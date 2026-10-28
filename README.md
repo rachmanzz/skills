@@ -2,7 +2,8 @@
 
 A practical Agent Skill for finding, explaining, and fixing performance
 bottlenecks in memory usage, loops, methods, data structures, I/O, concurrency,
-profiling, and caching.
+profiling, and caching. It uses the standard `SKILL.md` format and is
+compatible with Codex, Antigravity (`agy`), and other skills-compatible agents.
 
 ## Repository layout
 
@@ -70,6 +71,23 @@ For a local test:
 ```bash
 npx skills add . --skill performance-and-resource-efficiency --copy -y
 ```
+
+## Install in Google Antigravity
+
+Install the skill bundle with the Antigravity CLI:
+
+```bash
+agy plugin install https://github.com/rachmanzz/skills.git
+```
+
+Antigravity discovers the skill under the workspace `.agents/skills/` directory
+and exposes it as:
+
+```text
+/performance-and-resource-efficiency
+```
+
+No Antigravity-specific duplicate of `SKILL.md` is required.
 
 ## Install as an npm dependency
 
