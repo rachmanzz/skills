@@ -1,5 +1,5 @@
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "performance-and-reliability-skills",
-  "description": "Agent Skills for measured performance work and evidence-led concurrent or asynchronous execution: performance and resource efficiency, cache reliability and fallback, and evidence-led concurrency and delivery."
+  "description": "Agent Skills for measured performance work, evidence-led concurrent or asynchronous execution, and per-turn prompt confidence gating."
 }

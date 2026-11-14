@@ -1,7 +1,8 @@
 # Performance and Reliability Skills
 
-A collection of installable Agent Skills for measured performance work and
-evidence-led concurrent or asynchronous execution. The skills use the standard
+A collection of installable Agent Skills for measured performance work,
+evidence-led concurrent or asynchronous execution, and per-turn prompt
+confidence gating. The skills use the standard
 `SKILL.md` format and are compatible with Codex, Antigravity (`agy`), and other
 skills-compatible agents.
 
@@ -13,6 +14,9 @@ skills-compatible agents.
   leak prevention, join/wait behavior, shutdown, idempotency, transactions,
   ownership, visibility, durability, batching, backpressure, admission, and
   fairness with explicit evidence control.
+- `prompt-confidence-gate` — per-turn prompt ambiguity evaluation and execution
+  gating against a minimum confidence threshold from `AGENTS.md`, `GEMINI.md`,
+  or user input.
 
 ## Repository layout
 
@@ -23,6 +27,7 @@ skills-compatible agents.
 ├── plugin.json
 ├── tests/
 │   ├── test_plugin_manifest.py
+│   ├── test_score_prompt.py
 │   ├── test_validate_evidence.py
 │   └── test_validate_skill_package.py
 ├── .github/
@@ -71,7 +76,7 @@ skills-compatible agents.
                 ├── java.md
                 ├── rust.md
                 └── csharp.md
-    └── evidence-led-concurrency-and-delivery/
+    ├── evidence-led-concurrency-and-delivery/
         ├── SKILL.md
         ├── agents/
         │   └── openai.yaml
@@ -85,6 +90,15 @@ skills-compatible agents.
             ├── batching-backpressure-and-admission.md
             ├── fairness-and-scheduling.md
             └── validation-matrix.md
+    └── prompt-confidence-gate/
+        ├── SKILL.md
+        ├── agents/
+        │   └── openai.yaml
+        ├── scripts/
+        │   └── score_prompt.py
+        └── references/
+            ├── confidence-rubric.md
+            └── evidence-and-assumption-control.md
 ```
 
 ## Install from a Git repository
@@ -92,6 +106,7 @@ skills-compatible agents.
 ```bash
 npx skills add owner/repository --skill performance-and-resource-efficiency
 npx skills add owner/repository --skill evidence-led-concurrency-and-delivery
+npx skills add owner/repository --skill prompt-confidence-gate
 ```
 
 ## Validate locally
@@ -100,6 +115,8 @@ npx skills add owner/repository --skill evidence-led-concurrency-and-delivery
 python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py
 python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py \
   skills/evidence-led-concurrency-and-delivery
+python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py \
+  skills/prompt-confidence-gate
 python3 skills/performance-and-resource-efficiency/scripts/validate-evidence.py \
   skills/performance-and-resource-efficiency/references/evidence-ledger-template.md
 python3 -m unittest discover -s tests -v
@@ -110,6 +127,7 @@ For a local test:
 ```bash
 npx skills add . --skill performance-and-resource-efficiency --copy -y
 npx skills add . --skill evidence-led-concurrency-and-delivery --copy -y
+npx skills add . --skill prompt-confidence-gate --copy -y
 ```
 
 ## Install in Google Antigravity
@@ -122,11 +140,12 @@ Antigravity CLI:
 agy plugin install https://github.com/rachmanzz/skills.git
 ```
 
-The plugin installs as `performance-and-reliability-skills` with both skills:
+The plugin installs as `performance-and-reliability-skills` with all three skills:
 
 ```text
 /performance-and-resource-efficiency
 /evidence-led-concurrency-and-delivery
+/prompt-confidence-gate
 ```
 
 Alternatively, install manually by placing the plugin directory either in

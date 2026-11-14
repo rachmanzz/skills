@@ -1,0 +1,6 @@
+interface:
+  display_name: "Prompt Confidence Gate"
+  short_description: "Gate execution on per-turn prompt confidence"
+  default_prompt: "Use $prompt-confidence-gate on this turn to resolve the minimum confidence threshold from AGENTS.md or GEMINI.md, score candidate prompt intents with Python, and execute only if confidence meets the threshold."
+policy:
+  allow_implicit_invocation: true
