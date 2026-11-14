@@ -104,9 +104,9 @@ skills-compatible agents.
 ## Install from a Git repository
 
 ```bash
-npx skills add owner/repository --skill performance-and-resource-efficiency
-npx skills add owner/repository --skill evidence-led-concurrency-and-delivery
-npx skills add owner/repository --skill prompt-confidence-gate
+npx skills add rachmanzz/skills --skill performance-and-resource-efficiency
+npx skills add rachmanzz/skills --skill evidence-led-concurrency-and-delivery
+npx skills add rachmanzz/skills --skill prompt-confidence-gate
 ```
 
 ## Validate locally
