@@ -109,27 +109,6 @@ npx skills add rachmanzz/skills --skill evidence-led-concurrency-and-delivery
 npx skills add rachmanzz/skills --skill prompt-confidence-gate
 ```
 
-## Validate locally
-
-```bash
-python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py
-python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py \
-  skills/evidence-led-concurrency-and-delivery
-python3 skills/performance-and-resource-efficiency/scripts/validate-skill-package.py \
-  skills/prompt-confidence-gate
-python3 skills/performance-and-resource-efficiency/scripts/validate-evidence.py \
-  skills/performance-and-resource-efficiency/references/evidence-ledger-template.md
-python3 -m unittest discover -s tests -v
-```
-
-For a local test:
-
-```bash
-npx skills add . --skill performance-and-resource-efficiency --copy -y
-npx skills add . --skill evidence-led-concurrency-and-delivery --copy -y
-npx skills add . --skill prompt-confidence-gate --copy -y
-```
-
 ## Install in Google Antigravity
 
 The repository is also an Antigravity plugin: `plugin.json` at the root declares
@@ -140,28 +119,18 @@ Antigravity CLI:
 agy plugin install https://github.com/rachmanzz/skills.git
 ```
 
-The plugin installs as `performance-and-reliability-skills` with all three skills:
+The plugin installs as `rachmanzz` with all three skills:
 
 ```text
-/performance-and-resource-efficiency
-/evidence-led-concurrency-and-delivery
-/prompt-confidence-gate
+/rachmanzz:performance-and-resource-efficiency
+/rachmanzz:evidence-led-concurrency-and-delivery
+/rachmanzz:prompt-confidence-gate
 ```
 
 Alternatively, install manually by placing the plugin directory either in
 `.agents/plugins/` at a workspace root (project scope) or in
 `~/.gemini/config/plugins/` (global scope). No Antigravity-specific duplicate of
 `SKILL.md` is required.
-
-## Install as an npm dependency
-
-After publishing this package to npm, a consuming project can use the
-experimental npm synchronization flow:
-
-```bash
-npm install -D skills performance-and-resource-efficiency-skills
-npx skills experimental_sync -y
-```
 
 ## License
 
