@@ -1,0 +1,6 @@
+interface:
+  display_name: "Resilience and Error Handling"
+  short_description: "Audit error handling, degradation, isolation, recovery, and retry/timeout budgets"
+  default_prompt: "Use $resilience-and-error-handling to audit, design, or fix this code path or dependency boundary for error handling, silent errors, degradation, failure propagation, fault isolation, recovery, and retry/timeout consistency."
+policy:
+  allow_implicit_invocation: true

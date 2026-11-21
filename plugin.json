@@ -1,5 +1,6 @@
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "rachmanzz",
-  "description": "Agent Skills for measured performance work, evidence-led concurrent or asynchronous execution, and per-turn prompt confidence gating."
+  "version": "0.2.0",
+  "description": "Agent Skills for software quality, performance, concurrency, resilience, data integrity, business logic, security, architecture hygiene, observability, API contracts, and per-turn prompt confidence gating."
 }

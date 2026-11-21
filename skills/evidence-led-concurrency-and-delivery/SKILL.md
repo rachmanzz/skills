@@ -20,6 +20,16 @@ executor, delivery backend, durable storage, ownership period, and completion
 acknowledgement. Do not assume that similarly named mechanisms have equivalent
 semantics.
 
+For general synchronous error handling, silent-error audits, service-boundary
+degradation/circuit breaking, or cross-layer retry/timeout budgets outside
+async/concurrent task lifecycles, use `resilience-and-error-handling`. For
+database schema integrity, CRUD transaction safety, cross-table/service/cache
+data consistency, API mutation idempotency, or soft-delete/archival/retention
+lifecycles, use `data-integrity-and-lifecycle`. For API schemas, versioning
+compatibility, wire serialization, or inbound/outbound webhook contracts, use
+`api-contracts-and-integrations`; and for trace propagation, metrics, alerting,
+or probe endpoints, use `observability-and-audit-trail`.
+
 Read only the references needed for the current task:
 
 - Read [evidence-and-assumption-control.md](references/evidence-and-assumption-control.md)
@@ -50,8 +60,8 @@ Read only the references needed for the current task:
    `VERIFIED_IN_SCOPE` because an implementation looks plausible. Include the
    inspected boundary in every verified or not-found claim.
 3. Do not claim that work is cancelled, stopped, joined, durable, atomic,
-   idempotent, owned, visible, fair, leak-free, or gracefully shut down without
-   direct supporting evidence.
+   idempotent, owned, visible, fair, free of observed leaks, or gracefully shut
+   down without direct supporting evidence.
 4. Keep verified behavior, proposed design, test observation, and inference
    visibly separate. If evidence conflicts, report the conflict. Retain a valid
    counterexample to a claim as `CONTRADICTED_IN_SCOPE`; do not downgrade it to
@@ -133,9 +143,10 @@ Check fairness and starvation under sustained load.
 
 ### 7. Implement the smallest testable change
 
-Do not combine reliability changes with unrelated refactors. Preserve a
-rollback path. Add observability for state transitions, ownership loss,
-cancellation causes, recovery, saturation, and shutdown incompleteness.
+Do not combine reliability changes with unrelated refactors. Keep edits easy
+to revert independently of data/state changes. Add observability for state
+transitions, ownership loss, cancellation causes, recovery, saturation, and
+shutdown incompleteness.
 
 ### 8. Validate and report
 

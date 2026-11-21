@@ -11,11 +11,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
-FENCED_BLOCK_PATTERN = re.compile(r"(```[\s\S]*?```|~~~[\s\S]*?~~~)")
 THRESHOLD_PATTERN = re.compile(
-    r"^\s*(?:[-*]\s*)?`?confidence_threshold`?\s*[:=]\s*([+-]?[0-9]+(?:\.[0-9]+)?)\s*(%?)\s*$",
+    r"^\s*(?:[-*]\s*)?`?confidence_threshold`?\s*[:=]\s*(.+?)\s*$",
     re.IGNORECASE | re.MULTILINE,
 )
+MAX_CONFIG_BYTES = 1024 * 1024
 
 VAGUE_TOKENS = {
     "it",
@@ -90,28 +90,59 @@ def parse_threshold_string(raw_str: str) -> float:
     return normalize_threshold(raw_num, is_pct)
 
 
+def _strip_fenced_blocks(content: str) -> str:
+    """Remove fenced code blocks of 3+ backticks or tildes without regex backtracking."""
+    visible: list[str] = []
+    fence_char: str | None = None
+    fence_len = 0
+    for line in content.splitlines():
+        stripped = line.lstrip()
+        if fence_char is None:
+            match = re.match(r"^(`{3,}|~{3,})", stripped)
+            if match:
+                fence_char = match.group(1)[0]
+                fence_len = len(match.group(1))
+                continue
+            visible.append(line)
+        else:
+            if re.match(rf"^{re.escape(fence_char)}{{{fence_len},}}\s*$", stripped):
+                fence_char = None
+                fence_len = 0
+    return "\n".join(visible)
+
+
+def _read_bounded_text(path: Path, label: str) -> str:
+    """Read a regular UTF-8 file up to MAX_CONFIG_BYTES without following symlinks."""
+    if path.is_symlink():
+        raise ValueError(f"{label} must not be a symlink: {path}")
+    try:
+        size = path.stat().st_size
+        if size > MAX_CONFIG_BYTES:
+            raise ValueError(f"{label} exceeds maximum size ({MAX_CONFIG_BYTES} bytes): {path}")
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValueError(f"Failed to read {label} {path}: {exc}") from exc
+
+
 def load_threshold_from_configs(config_paths: list[Path]) -> tuple[float | None, str | None]:
     """Read the first valid confidence_threshold directive outside fenced code blocks."""
     for path in config_paths:
-        if not path.is_file():
+        if not path.exists():
             continue
-        try:
-            content = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError) as exc:
-            raise ValueError(f"Failed to read config file {path}: {exc}") from exc
-
-        stripped = FENCED_BLOCK_PATTERN.sub("", content)
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f"Config path must be a regular file: {path}")
+        content = _read_bounded_text(path, "config file")
+        stripped = _strip_fenced_blocks(content)
         match = THRESHOLD_PATTERN.search(stripped)
         if not match:
             continue
-        raw_num = float(match.group(1))
-        is_pct = match.group(2) == "%"
-        return normalize_threshold(raw_num, is_pct), str(path)
+        raw_value = match.group(1).strip()
+        return parse_threshold_string(raw_value), str(path)
     return None, None
 
 
 def score_raw_prompt(prompt: str) -> dict[str, Any]:
-    """Compute a deterministic baseline confidence score for an unsplit prompt."""
+    """Compute a deterministic lexical heuristic confidence score for an unsplit prompt."""
     text = prompt.strip()
     if not text:
         return {
@@ -122,7 +153,7 @@ def score_raw_prompt(prompt: str) -> dict[str, Any]:
             "signals": {"reason": "Prompt text is empty."},
         }
 
-    words = re.findall(r"[a-zA-Z0-9_./`-]+", text.lower())
+    words = re.findall(r"[\w./`-]+", text.lower())
     word_count = len(words)
 
     length_score = min(1.0, word_count / 18.0) * 0.30
@@ -153,8 +184,20 @@ def score_raw_prompt(prompt: str) -> dict[str, Any]:
     }
 
 
+def _optional_string(item: dict[str, Any], key: str, default: str) -> str:
+    if key not in item:
+        return default
+    val = item[key]
+    if not isinstance(val, str):
+        raise ValueError(f"Candidate field {key!r} must be a string")
+    return val
+
+
 def score_candidates(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Score and rank explicit candidate intents on [0.0, 1.0]."""
+    if not candidates:
+        raise ValueError("Candidates list must be non-empty")
+
     raw_scores: list[tuple[dict[str, Any], float]] = []
     for index, item in enumerate(candidates, start=1):
         if not isinstance(item, dict):
@@ -168,24 +211,28 @@ def score_candidates(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
         penalty = validate_unit_float(item.get("ambiguity_penalty", 0.0), "ambiguity_penalty")
 
         base = (0.40 * specificity) + (0.35 * target_clarity) + (0.25 * constraints) - penalty
-        bounded = max(0.01, min(1.0, base))
+        bounded = max(0.0, min(1.0, base))
         raw_scores.append(
             (
                 {
-                    "id": str(item.get("id", f"intent-{index}")),
-                    "label": str(item.get("label", f"Candidate intent {index}")),
-                    "summary": str(item.get("summary", "")),
+                    "id": _optional_string(item, "id", f"intent-{index}"),
+                    "label": _optional_string(item, "label", f"Candidate intent {index}"),
+                    "summary": _optional_string(item, "summary", ""),
                 },
                 bounded,
             )
         )
 
-    total_weight = sum(score for _, score in raw_scores) or 1.0
+    total_weight = sum(score for _, score in raw_scores)
     single_candidate = len(raw_scores) == 1
 
     scored: list[dict[str, Any]] = []
     for meta, raw in raw_scores:
-        combined = raw if single_candidate else (0.65 * raw + 0.35 * (raw / total_weight))
+        if single_candidate or total_weight == 0.0:
+            combined = raw
+        else:
+            share = raw / total_weight
+            combined = raw * (0.65 + 0.35 * share)
         confidence = round(max(0.0, min(1.0, combined)), 4)
         scored.append(
             {
@@ -212,12 +259,9 @@ def parse_candidates_payload(payload: str) -> list[dict[str, Any]]:
 
 def load_candidates_file(path: Path) -> list[dict[str, Any]]:
     """Load and parse candidate intents from a JSON file."""
-    if not path.is_file():
-        raise ValueError(f"Candidates file not found: {path}")
-    try:
-        payload = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError) as exc:
-        raise ValueError(f"Failed to read candidates file {path}: {exc}") from exc
+    if path.is_symlink() or not path.is_file():
+        raise ValueError(f"Candidates file not found or invalid: {path}")
+    payload = _read_bounded_text(path, "candidates file")
     return parse_candidates_payload(payload)
 
 
@@ -228,6 +272,8 @@ def evaluate(
     candidates_data: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Evaluate prompt confidence against the resolved threshold."""
+    scored_candidates = score_candidates(candidates_data) if candidates_data is not None else None
+
     if threshold is None:
         return {
             "status": "THRESHOLD_REQUIRED",
@@ -240,17 +286,18 @@ def evaluate(
             "candidates": [],
         }
 
-    if not prompt.strip():
+    is_empty = not prompt.strip()
+    if is_empty:
         candidates = [score_raw_prompt(prompt)]
     else:
-        candidates = score_candidates(candidates_data) if candidates_data else [score_raw_prompt(prompt)]
+        candidates = scored_candidates if scored_candidates is not None else [score_raw_prompt(prompt)]
     top = candidates[0]
     has_close_tie = (
         len(candidates) > 1
         and (top["confidence"] - candidates[1]["confidence"]) <= TIE_MARGIN
     )
 
-    should_execute = top["confidence"] >= threshold and not has_close_tie
+    should_execute = (not is_empty) and top["confidence"] >= threshold and not has_close_tie
     status = "EXECUTE" if should_execute else "CLARIFY"
 
     return {

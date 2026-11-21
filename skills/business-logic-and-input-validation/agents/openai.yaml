@@ -1,0 +1,6 @@
+interface:
+  display_name: "Business Logic and Input Validation"
+  short_description: "Audit business rules, boundaries, state transitions, invariants, calculations, and inputs"
+  default_prompt: "Use $business-logic-and-input-validation to audit this code path for business logic correctness, boundary conditions, state transitions, domain invariants, calculation accuracy, and input validation."
+policy:
+  allow_implicit_invocation: true

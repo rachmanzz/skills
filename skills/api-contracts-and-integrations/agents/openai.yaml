@@ -1,0 +1,6 @@
+interface:
+  display_name: "API Contracts and Integrations"
+  short_description: "Audit API contracts, compatibility, serialization, and webhook reliability"
+  default_prompt: "Use $api-contracts-and-integrations to audit this service or integration boundary for API contract parity, backward/forward compatibility, serialization encoding/decoding safety, and webhook reliability."
+policy:
+  allow_implicit_invocation: true

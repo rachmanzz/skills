@@ -1,0 +1,6 @@
+interface:
+  display_name: "Application Security and Isolation"
+  short_description: "Audit auth, authz, tenant isolation, injection, secrets, info disclosure, and dependencies"
+  default_prompt: "Use $application-security-and-isolation to audit this codebase for authentication, authorization, tenant isolation, injection risks, secret exposure, information disclosure, and vulnerable dependencies."
+policy:
+  allow_implicit_invocation: true

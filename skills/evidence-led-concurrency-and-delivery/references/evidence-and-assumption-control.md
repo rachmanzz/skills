@@ -66,8 +66,9 @@ evidence or label the resulting design as conditional.
 
 ## Completion gate
 
-Before saying “implemented”, “fixed”, “working”, “safe”, “durable”, “leak-free”,
-or “tested successfully”, qualify the statement with its scope and require:
+Before saying “implemented”, “fixed”, “working”, “safe”, “durable”, “no leak
+was observed during this scenario and observation window”, or “tested
+successfully”, qualify the statement with its scope and require:
 
 1. the relevant code or configuration was inspected;
 2. the claim's scope is stated;

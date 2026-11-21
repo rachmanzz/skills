@@ -45,11 +45,24 @@ class ScorePromptTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             gemini_md = Path(tmp) / "GEMINI.md"
             gemini_md.write_text(
-                "```markdown\nconfidence_threshold: 0.50\n```\nconfidence_threshold: 90%\n",
+                "````markdown\n```text\nconfidence_threshold: 0.50\n```\n````\n"
+                "~~~\nconfidence_threshold: 0.40\n~~~\n"
+                "- `confidence_threshold`: 90%\n",
                 encoding="utf-8",
             )
             threshold, _ = score_prompt.load_threshold_from_configs([gemini_md])
             self.assertEqual(threshold, 0.90)
+
+            bad_md = Path(tmp) / "BAD.md"
+            bad_md.write_text("confidence_threshold: invalid_text\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                score_prompt.load_threshold_from_configs([bad_md])
+
+            first_md = Path(tmp) / "AGENTS.md"
+            first_md.write_text("confidence_threshold: 85\n", encoding="utf-8")
+            threshold, source = score_prompt.load_threshold_from_configs([first_md, gemini_md])
+            self.assertEqual(threshold, 0.85)
+            self.assertEqual(source, str(first_md))
 
     def test_reads_percent_threshold_from_gemini_md(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -71,18 +84,25 @@ class ScorePromptTests(unittest.TestCase):
         self.assertGreaterEqual(result["top_intent"]["confidence"], 0.70)
 
     def test_empty_prompt_with_threshold_triggers_clarify(self) -> None:
-        result = score_prompt.evaluate("   ", 0.50, "cli:--threshold")
-        self.assertEqual(result["status"], "CLARIFY")
-        self.assertEqual(result["top_intent"]["confidence"], 0.0)
+        for thresh in (0.0, 0.50):
+            result = score_prompt.evaluate("   ", thresh, "cli:--threshold")
+            self.assertEqual(result["status"], "CLARIFY")
+            self.assertEqual(result["top_intent"]["confidence"], 0.0)
 
         with_candidates = score_prompt.evaluate(
             "   ",
-            0.50,
+            0.0,
             "cli:--threshold",
             [{"id": "a", "label": "Only option", "specificity": 1.0, "target_clarity": 1.0, "constraint_completeness": 1.0}],
         )
         self.assertEqual(with_candidates["status"], "CLARIFY")
         self.assertEqual(with_candidates["top_intent"]["confidence"], 0.0)
+
+    def test_multi_intent_and_non_ascii_prompts(self) -> None:
+        multi = score_prompt.score_raw_prompt("Add tests or refactor helper?")
+        self.assertEqual(multi["signals"]["multi_intent_markers"], 2)
+        non_ascii = score_prompt.score_raw_prompt("Perbaiki modul ini")
+        self.assertEqual(non_ascii["signals"]["word_count"], 3)
 
     def test_ambiguous_vague_prompt_triggers_clarify(self) -> None:
         prompt = "maybe fix it."
@@ -137,13 +157,48 @@ class ScorePromptTests(unittest.TestCase):
         self.assertEqual(result["status"], "EXECUTE")
         self.assertGreaterEqual(result["top_intent"]["confidence"], 0.85)
 
-    def test_rejects_nan_and_out_of_range_candidate_attributes(self) -> None:
+    def test_weak_decoy_never_inflates_and_tie_margin_boundary(self) -> None:
+        alone = score_prompt.score_candidates(
+            [{"id": "a", "label": "Only", "specificity": 0.5, "target_clarity": 0.5, "constraint_completeness": 0.5}]
+        )
+        with_decoy = score_prompt.score_candidates(
+            [
+                {"id": "a", "label": "Main", "specificity": 0.5, "target_clarity": 0.5, "constraint_completeness": 0.5},
+                {"id": "b", "label": "Decoy", "specificity": 0.0, "target_clarity": 0.0, "constraint_completeness": 0.0, "ambiguity_penalty": 1.0},
+            ]
+        )
+        self.assertEqual(alone[0]["confidence"], 0.5)
+        self.assertLessEqual(with_decoy[0]["confidence"], alone[0]["confidence"])
+
+        tied_at_margin = score_prompt.evaluate(
+            "run check",
+            0.20,
+            "cli:--threshold",
+            [
+                {"id": "a", "label": "A", "specificity": 0.6, "target_clarity": 0.6, "constraint_completeness": 0.6},
+                {"id": "b", "label": "B", "specificity": 0.55, "target_clarity": 0.55, "constraint_completeness": 0.55},
+            ],
+        )
+        self.assertTrue(tied_at_margin["has_close_tie"])
+        self.assertEqual(tied_at_margin["status"], "CLARIFY")
+
+    def test_rejects_nan_bool_null_and_out_of_range_candidate_attributes(self) -> None:
         with self.assertRaises(ValueError):
             score_prompt.score_candidates([{"id": "bad", "specificity": float("nan")}])
+        with self.assertRaises(ValueError):
+            score_prompt.score_candidates([{"id": "bad", "specificity": True}])
+        with self.assertRaises(ValueError):
+            score_prompt.score_candidates([{"id": "bad", "specificity": 1.1}])
+        with self.assertRaises(ValueError):
+            score_prompt.score_candidates([{"id": None}])
+        with self.assertRaises(ValueError):
+            score_prompt.score_candidates([])
         with self.assertRaises(ValueError):
             score_prompt.score_candidates([{"id": "bad", "ambiguity_penalty": -0.2}])
         with self.assertRaises(ValueError):
             score_prompt.score_candidates(["not-a-dict"])  # type: ignore[list-item]
+        with self.assertRaises(ValueError):
+            score_prompt.evaluate("run", None, None, [])
 
     def test_cli_outputs_valid_json_and_handles_errors_cleanly(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -172,17 +227,45 @@ class ScorePromptTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertEqual(payload["status"], "EXECUTE")
 
+            code, payload = self.run_cli(["--prompt", "do task"])
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["status"], "THRESHOLD_REQUIRED")
+
+            code, payload = self.run_cli(
+                ["--config", str(gemini_md), "--threshold", "0.99", "--prompt", "do task"]
+            )
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["threshold"], 0.99)
+            self.assertEqual(payload["threshold_source"], "cli:--threshold")
+
+            empty_cand = Path(tmp) / "empty.json"
+            empty_cand.write_text("[]", encoding="utf-8")
+            code, payload = self.run_cli(
+                ["--threshold", "0.8", "--prompt", "do task", "--candidates-file", str(empty_cand)]
+            )
+            self.assertEqual(code, 1)
+            self.assertEqual(payload["status"], "ERROR")
+
+            code, payload = self.run_cli(
+                ["--threshold", "0.8", "--prompt", "do task", "--candidates-file", str(Path(tmp) / "missing.json")]
+            )
+            self.assertEqual(code, 1)
+            self.assertEqual(payload["status"], "ERROR")
+
         for bad_args in (
+            ["--threshold", "", "--prompt", "test"],
             ["--threshold", "abc", "--prompt", "test"],
             ["--threshold", "85%%", "--prompt", "test"],
             ["--threshold", "-0.1", "--prompt", "test"],
             ["--threshold", "150", "--prompt", "test"],
             ["--threshold", "0.8", "--candidates", "{bad json"],
             ["--threshold", "0.8", "--candidates", '{"a": 1}'],
+            ["--threshold", "0.8", "--candidates", "[]"],
         ):
             code, payload = self.run_cli(bad_args)
             self.assertEqual(code, 1)
             self.assertEqual(payload["status"], "ERROR")
+            self.assertIn("status", payload)
             self.assertTrue(payload["error"])
 
 

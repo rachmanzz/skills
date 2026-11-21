@@ -15,19 +15,20 @@ Use the strongest available evidence:
 5. user statement, issue description, or design intention;
 6. model inference or common practice.
 
-Levels 1 and 2 can support `VERIFIED` for a narrowly scoped claim. Level 3
+Levels 1 and 2 can support `VERIFIED_IN_SCOPE` for a narrowly scoped claim. Level 3
 usually supports `PARTIAL` or a carefully bounded implementation claim. Levels
 4 through 6 do not prove that a runtime feature exists or works.
 
 ## Claim statuses
 
-- `VERIFIED`: direct evidence supports the exact claim and scope.
+- `VERIFIED_IN_SCOPE`: direct evidence supports the exact claim within the inspected scope.
+- `CONTRADICTED_IN_SCOPE`: direct evidence in the inspected scope disproves the claim.
 - `PARTIAL`: evidence supports only some paths, environments, or conditions.
-- `ABSENT`: the relevant scope was inspected and the capability was not found.
-- `UNKNOWN`: evidence is insufficient to decide.
+- `NOT_FOUND_IN_SCOPE`: the inspected scope was searched and the capability or behavior was not found.
+- `UNKNOWN`: evidence is insufficient to decide (including uninspected paths).
 
-Do not use `ABSENT` when only one file or one search pattern was checked. Do
-not use `VERIFIED` because a library is installed, a function has the right
+Do not use `NOT_FOUND_IN_SCOPE` when only one file or one search pattern was checked. Do
+not use `VERIFIED_IN_SCOPE` because a library is installed, a function has the right
 name, or a configuration key appears to be enabled.
 
 ## Evidence gate
@@ -40,7 +41,7 @@ has passed validation:
    signals.
 3. Record the evidence source, such as a path and line, command output, test
    name, benchmark result, or trace.
-4. Assign `VERIFIED`, `PARTIAL`, `ABSENT`, or `UNKNOWN`.
+4. Assign `VERIFIED_IN_SCOPE`, `CONTRADICTED_IN_SCOPE`, `PARTIAL`, `NOT_FOUND_IN_SCOPE`, or `UNKNOWN`.
 5. If the evidence is incomplete, state the assumption and its impact.
 6. Define the next validation step or ask the user when the missing information
    materially changes the implementation.

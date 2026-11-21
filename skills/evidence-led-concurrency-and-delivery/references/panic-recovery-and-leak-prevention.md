@@ -19,7 +19,7 @@ attention. Keep the original failure attached to the decision.
 
 ## Leak checklist
 
-Inspect every path for:
+Inspect every path in scope for:
 
 - execution units with no owner or join path;
 - queues or channels that can block forever;

@@ -15,8 +15,18 @@ the question.
 
 Choose implementation details from the actual language, runtime, libraries, and
 deployment model. The function of this skill is to connect a measurable
-performance problem to an appropriate code change and validation method. Read
-only the relevant references:
+performance problem to an appropriate code change and validation method. For
+general error-handling audits, silent errors, circuit breaking, blast-radius
+isolation, or cross-layer retry/timeout budgets unrelated to performance tuning
+or cache sizing, use `resilience-and-error-handling`. For database schema
+integrity, CRUD transaction safety, cross-table/service consistency, mutation
+idempotency, or data retention/archival lifecycles, use
+`data-integrity-and-lifecycle`. For module coupling, circular dependencies, dead
+code, duplication, or configuration hygiene, use
+`architecture-and-config-hygiene`; for logging, metrics, tracing, alerting, or
+health/audit-trail checks, use `observability-and-audit-trail`; and for API
+contracts, schema compatibility, or wire serialization correctness, use
+`api-contracts-and-integrations`. Read only the relevant references:
 
 - Read [memory-efficiency.md](references/memory-efficiency.md) for allocation,
   object lifetime, copying, leaks, and memory budgets.
@@ -34,8 +44,11 @@ only the relevant references:
   before making performance claims or comparing implementations.
 - Read
   [evidence-and-assumption-control.md](references/evidence-and-assumption-control.md)
+  and [evidence-ledger-template.md](references/evidence-ledger-template.md)
   before making claims about existing behavior, completed work, performance,
   compatibility, tests, or runtime state.
+- Read [validation-matrix.md](references/validation-matrix.md) for required
+  measurement and cache-fallback scenarios.
 - Use the bundled
   [validate-evidence.py](scripts/validate-evidence.py) when producing a
   Markdown evidence ledger. Use [validate-skill-package.py](scripts/validate-skill-package.py)
@@ -52,8 +65,9 @@ only the relevant references:
 
 1. Establish a baseline or a reasoned complexity/resource model before making
    a performance claim.
-2. Preserve behavior, correctness, authorization, and data consistency. A
-   faster wrong result is a regression.
+2. Preserve behavior, authorization, and data consistency—and any explicit
+   freshness or stale-while-revalidate contract when caching is used. A faster
+   wrong result is a regression.
 3. Avoid unbounded resources: memory, cache entries, queues, retries, goroutines,
    threads, tasks, open connections, and buffered work.
 4. Do not replace a requested backend, algorithm, or execution model with a
@@ -70,14 +84,15 @@ only the relevant references:
    inefficient algorithm, query, loop, or method boundary.
 9. When cache fallback is involved, protect the database or origin from an
    unbounded miss storm and report the exact fallback path.
-10. Separate verified behavior, partial implementation, absent capability, and
-    unknown repository state in the final report.
+10. Separate verified-in-scope behavior, contradicted claims, partial
+    implementation, not-found-in-scope items, and unknown repository state in
+    the final report.
 11. Treat user statements as requirements or hypotheses, not proof that a
     feature already exists or works.
 12. Do not claim that work is complete, a bug is fixed, code is faster, a cache
     exists, or a test passed without direct evidence.
-13. Never upgrade `UNKNOWN` to `VERIFIED` because an implementation seems
-    likely. Keep missing evidence visible.
+13. Never upgrade `UNKNOWN` to `VERIFIED_IN_SCOPE` because an implementation
+    seems likely. Keep missing evidence visible.
 14. Do not claim to have run a command, test, benchmark, profile, or deployment
     check that was not actually run and observed.
 15. State assumptions that materially affect the solution, including their
@@ -122,14 +137,15 @@ small claim ledger:
 
 | Claim | Evidence | Status | Validation |
 | --- | --- | --- | --- |
-| What is being asserted | File, line, config, test, command, or runtime signal | `VERIFIED`, `PARTIAL`, `ABSENT`, or `UNKNOWN` | How the status can be checked |
+| What is being asserted | File, line, config, test, command, or runtime signal | `VERIFIED_IN_SCOPE`, `CONTRADICTED_IN_SCOPE`, `PARTIAL`, `NOT_FOUND_IN_SCOPE`, or `UNKNOWN` | How the status can be checked |
 
-Use `ABSENT` only after searching the relevant repository scope and finding no
-implementation. Use `UNKNOWN` when the search or runtime evidence is
+Use `NOT_FOUND_IN_SCOPE` only after searching the relevant repository scope and
+finding no implementation. Use `UNKNOWN` when the search or runtime evidence is
 insufficient. User intent, a package being installed, a variable being named,
 or a configuration key existing is not proof of behavior.
 
-When the bundled validator is available, run:
+When running the bundled validator from this skill directory (or via its full
+installed plugin path), run:
 
 ```bash
 python3 scripts/validate-evidence.py path/to/evidence-ledger.md
@@ -137,8 +153,8 @@ python3 scripts/validate-evidence.py path/to/evidence-ledger.md
 
 The ledger must contain non-empty `Claim`, `Evidence`, `Status`, and
 `Validation` columns. Definitive claims such as “implemented,” “fixed,”
-“working,” “faster,” or “tested successfully” require `VERIFIED` status and
-supporting evidence.
+“working,” “faster,” or “tested successfully” require `VERIFIED_IN_SCOPE` (or
+legacy `VERIFIED`) status and supporting evidence.
 
 ### 3. Analyze memory and complexity
 
@@ -181,7 +197,7 @@ load, and failure tests appropriate to the risk.
 At minimum, consider small input, large input, empty input, worst-case input,
 repeated input, concurrent input, resource exhaustion, and dependency failure.
 
-## Reporting requirements
+## Required report shape
 
 Report:
 
@@ -198,10 +214,12 @@ Report:
 
 Use these statuses:
 
-- `VERIFIED`: supported by code inspection and a passing test, benchmark,
-  profile, or runtime signal;
+- `VERIFIED_IN_SCOPE`: supported by code inspection and a passing test,
+  benchmark, profile, or runtime signal in the inspected scope;
+- `CONTRADICTED_IN_SCOPE`: disproven by direct evidence in the inspected scope;
 - `PARTIAL`: improved only for some paths, workloads, or failure modes;
-- `ABSENT`: the capability or optimization is not implemented;
+- `NOT_FOUND_IN_SCOPE`: the capability or optimization was not found within the
+  inspected scope;
 - `UNKNOWN`: the repository does not provide enough evidence to decide.
 
 Never use “already implemented,” “fixed,” “working,” “faster,” “more

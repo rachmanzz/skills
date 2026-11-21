@@ -1,0 +1,6 @@
+interface:
+  display_name: "Data Integrity and Lifecycle"
+  short_description: "Audit data integrity, consistency, transactions, concurrency, idempotency, and lifecycle"
+  default_prompt: "Use $data-integrity-and-lifecycle to audit, design, or fix this data model, persistence path, or mutation API for data integrity, cross-table/service/cache consistency, transaction safety, concurrent mutations, idempotency, and lifecycle controls."
+policy:
+  allow_implicit_invocation: true

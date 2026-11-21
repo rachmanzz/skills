@@ -31,19 +31,21 @@ Follow these four steps on every turn without exception:
 
 ### 3. Score confidence with Python
 
-Run `scripts/score_prompt.py` to compute a deterministic confidence score for the prompt and each candidate intent:
+Run `scripts/score_prompt.py` (resolved from the installed `prompt-confidence-gate` skill directory or repository root) to compute a deterministic lexical heuristic or weighted candidate score for the prompt and any candidate intents:
 
 ```bash
-python3 skills/prompt-confidence-gate/scripts/score_prompt.py \
+python3 /path/to/prompt-confidence-gate/scripts/score_prompt.py \
   --config AGENTS.md \
   --config GEMINI.md \
   --prompt "<user prompt>"
 ```
 
-When multiple candidate interpretations exist, pass them as an inline JSON array via `--candidates` (or from a file via `--candidates-file`) using the schema defined in [confidence-rubric.md](references/confidence-rubric.md) so each candidate receives an explicit, comparable confidence score. Pass workspace or user-level `AGENTS.md` and `GEMINI.md` paths via `--config`.
+When `--threshold` is supplied on the CLI, it overrides `--config` files; otherwise the first matching `confidence_threshold` across the `--config` files is used (a malformed or out-of-range first match returns an error). When multiple candidate interpretations exist, pass them as an inline JSON array via `--candidates` (or from a file via `--candidates-file`) using the schema defined in [confidence-rubric.md](references/confidence-rubric.md) so each candidate receives an explicit, comparable confidence score. Pass workspace or user-level `AGENTS.md` and `GEMINI.md` paths via `--config`.
 
 ### 4. Enforce the execution gate
 
+The script reports a JSON decision (`exit 0`) and does not hook runtime tools directly; the agent must honor the decision as follows:
+
 1. **`THRESHOLD_REQUIRED`**: No threshold was found in `AGENTS.md`, `GEMINI.md`, or CLI flags. Ask the user for the minimum confidence threshold before proceeding.
-2. **`EXECUTE`** (`top_intent.confidence >= threshold` and no unresolved tie): Proceed to execute the top intent.
-3. **`CLARIFY`** (`top_intent.confidence < threshold` or competing intents are tied): Do **not** execute. Present the candidate intents with their computed confidence scores and ask the user to confirm the intended meaning.
+2. **`EXECUTE`** (`top_intent.confidence >= threshold` and no unresolved tie within `0.05`): Proceed to execute the top intent.
+3. **`CLARIFY`** (`top_intent.confidence < threshold`, prompt is empty, or competing intents are tied within `0.05`): Do **not** execute. Present the candidate intents with their computed confidence scores and ask the user to confirm the intended meaning.
